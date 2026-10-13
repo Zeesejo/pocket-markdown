@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A page with an "M" and a down arrow, the Markdown mark. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M34,30 h30 l10,10 v38 a2,2 0 0 1 -2,2 h-38 a2,2 0 0 1 -2,-2 v-46 a2,2 0 0 1 2,-2 z" />
+    <path android:fillColor="#1F5F8B"
+        android:pathData="M39,48 h5 l4,6 l4,-6 h5 v16 h-5 v-8 l-4,5 l-4,-5 v8 h-5 z" />
+    <path android:fillColor="#1F5F8B"
+        android:pathData="M62,48 h5 v8 h4 l-6.5,8 l-6.5,-8 h4 z" />
+</vector>

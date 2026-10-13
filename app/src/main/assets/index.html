@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pocket Markdown</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: single reading column under a slim sticky toolbar; drawer of recent files slides up from the bottom. */
+:root {
+  --bg: #f6f7f8;
+  --paper: #ffffff;
+  --fg: #1b2127;
+  --muted: #5d6873;
+  --line: #dde2e7;
+  --accent: #1f5f8b;
+  --accent-soft: #e3eef6;
+  --code-bg: #eef1f4;
+  --font-ui: "Archivo", system-ui, sans-serif;
+  --font-read: "Source Serif 4", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --size: 18px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161a; --paper: #191e23; --fg: #e3e8ec; --muted: #94a0ab;
+    --line: #2b333b; --accent: #7cb8e4; --accent-soft: #1d2d3a; --code-bg: #222a31;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161a; --paper: #191e23; --fg: #e3e8ec; --muted: #94a0ab;
+  --line: #2b333b; --accent: #7cb8e4; --accent-soft: #1d2d3a; --code-bg: #222a31;
+  color-scheme: dark;
+}
+html, body { min-height: 100%; }
+body { margin: 0; font-size: 14px; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); -webkit-tap-highlight-color: transparent; }
+
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  display: flex; align-items: center; gap: 8px;
+  padding-block: 10px; padding-inline: 16px;
+  background: var(--paper); border-bottom: 1px solid var(--line);
+}
+.name { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.name strong { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.name small { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--paper); color: var(--fg);
+  font: 600 14px var(--font-ui); border-radius: 10px; min-height: 40px; padding: 0 12px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.btn:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.tools { display: flex; gap: 8px; flex-wrap: wrap; padding-block: 10px; padding-inline: 16px; border-bottom: 1px solid var(--line); background: var(--bg); }
+.tools .btn { min-height: 36px; font-size: 13px; }
+.tools .spacer { flex: 1; }
+
+main { padding-block: 24px 96px; padding-inline: 16px; }
+.doc {
+  max-width: 68ch; margin-inline: auto;
+  font-family: var(--font-read); font-size: var(--size); line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.doc > :first-child { margin-top: 0; }
+.doc h1, .doc h2, .doc h3, .doc h4 { font-family: var(--font-ui); line-height: 1.25; text-wrap: balance; margin: 1.6em 0 0.5em; }
+.doc h1 { font-size: 1.7em; font-weight: 700; }
+.doc h2 { font-size: 1.35em; font-weight: 700; padding-bottom: .25em; border-bottom: 1px solid var(--line); }
+.doc h3 { font-size: 1.12em; font-weight: 600; }
+.doc h4 { font-size: 1em; font-weight: 600; color: var(--muted); }
+.doc p, .doc ul, .doc ol, .doc blockquote, .doc pre, .doc table { margin: 0 0 1em; }
+.doc ul, .doc ol { padding-left: 1.4em; }
+.doc li + li { margin-top: .25em; }
+.doc li input[type="checkbox"] { margin-right: .4em; accent-color: var(--accent); }
+.doc a { color: var(--accent); text-underline-offset: 2px; }
+.doc blockquote { border-left: 3px solid var(--accent); margin-left: 0; padding: .2em 0 .2em 1em; color: var(--muted); }
+.doc code { font-family: var(--font-mono); font-size: .84em; background: var(--code-bg); padding: .12em .35em; border-radius: 4px; }
+.doc pre { background: var(--code-bg); padding: 14px; border-radius: 8px; overflow-x: auto; line-height: 1.5; }
+.doc pre code { background: none; padding: 0; font-size: .8em; }
+.doc .tablewrap { overflow-x: auto; margin: 0 0 1em; }
+.doc table { border-collapse: collapse; font-size: .9em; font-variant-numeric: tabular-nums; margin: 0; }
+.doc th, .doc td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+.doc th { background: var(--code-bg); font-family: var(--font-ui); font-weight: 600; }
+.doc hr { border: 0; border-top: 1px solid var(--line); margin: 2em 0; }
+.doc img { border-radius: 6px; }
+
+.source { width: 100%; max-width: 68ch; margin-inline: auto; display: block; min-height: 70vh; box-sizing: border-box;
+  font: 14px/1.55 var(--font-mono); color: var(--fg); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 14px; resize: vertical; }
+
+.sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 20; }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; max-height: 70vh; overflow-y: auto;
+  background: var(--paper); border-top: 1px solid var(--line); border-radius: 16px 16px 0 0;
+  padding-block: 16px calc(16px + env(safe-area-inset-bottom, 0px)); padding-inline: 16px;
+}
+.sheet h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; }
+.recent { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.recent li { display: flex; gap: 6px; }
+.recent .open { flex: 1; min-width: 0; justify-content: flex-start; text-align: left; flex-direction: column; align-items: flex-start; padding-block: 8px; min-height: 52px; }
+.recent .open span { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recent .open small { color: var(--muted); font-weight: 500; font-size: 12px; }
+.empty { color: var(--muted); font-size: 14px; margin: 0; }
+
+.drop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 18%, transparent); border: 3px dashed var(--accent); font: 600 18px var(--font-ui); color: var(--accent); }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 10px 14px; border-radius: 10px; font-size: 14px; z-index: 40; max-width: calc(100% - 32px); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (prefers-reduced-motion: no-preference) { .sheet { animation: up .18s ease-out; } @keyframes up { from { transform: translateY(20px); opacity: .6; } } }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="name"><strong id="docName">Welcome.md</strong><small id="docMeta">Example file</small></div>
+  <button class="btn" id="recentBtn" aria-label="Recent files"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button>
+  <button class="btn primary" id="openBtn" type="button"><svg viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>Open</button>
+  <input class="sr" type="file" id="fileInput" accept=".md,.markdown,.mdown,.mkd,.txt,text/markdown,text/plain" multiple>
+</header>
+
+<div class="tools" role="toolbar" aria-label="View options">
+  <button class="btn" id="smaller" aria-label="Smaller text">A−</button>
+  <button class="btn" id="bigger" aria-label="Larger text">A+</button>
+  <button class="btn" id="sourceBtn" aria-pressed="false">Source</button>
+  <span class="spacer"></span>
+  <button class="btn" id="pasteBtn">Paste text</button>
+  <button class="btn" id="copyBtn">Copy text</button>
+</div>
+
+<main>
+  <article class="doc" id="doc"></article>
+  <textarea class="source" id="source" hidden spellcheck="false" aria-label="Markdown source"></textarea>
+</main>
+
+<div class="sheet-backdrop" id="backdrop" hidden></div>
+<section class="sheet" id="sheet" hidden aria-label="Recent files">
+  <h2>Recent files</h2>
+  <ul class="recent" id="recentList"></ul>
+</section>
+<div class="drop" id="drop" hidden>Drop .md files to open</div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="marked.min.js"></script>
+<script src="purify.min.js"></script>
+<script>
+const SAMPLE = `# Pocket Markdown
+
+Tap **Open** to pick a \`.md\` file from your phone. It works with files in *Downloads*, Google Drive, Samsung My Files and anywhere else the Android file picker reaches.
+
+## What renders
+
+- Headings, **bold**, *italic*, ~~strikethrough~~
+- [Links](https://commonmark.org) and images
+- Task lists
+  - [x] Open a file
+  - [ ] Read it comfortably
+- Tables, quotes and code blocks
+
+> Files you open are kept in **Recent** on this phone only.
+
+| Sensor | Rate | Topic |
+|---|---:|---|
+| IMU | 200 Hz | \`/imu/data\` |
+| Sonar | 10 Hz | \`/sonar/range\` |
+| Camera | 30 Hz | \`/cam/image_raw\` |
+
+\`\`\`python
+import rclpy
+from rclpy.node import Node
+
+class Crawler(Node):
+    def __init__(self):
+        super().__init__("crawler")
+\`\`\`
+
+---
+
+Use **A−** / **A+** for text size and **Source** to see or edit the raw Markdown.`;
+
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+let current = { name: "Welcome.md", text: SAMPLE, sample: true };
+let size = store.get("pm-size", 18);
+
+marked.setOptions({ gfm: true, breaks: false });
+function render() {
+  const html = DOMPurify.sanitize(marked.parse(current.text), { ADD_ATTR: ["target"] });
+  const doc = $("doc");
+  doc.innerHTML = html;
+  doc.querySelectorAll("table").forEach(t => { const w = document.createElement("div"); w.className = "tablewrap"; t.replaceWith(w); w.appendChild(t); });
+  doc.querySelectorAll("a[href^='http']").forEach(a => { a.target = "_blank"; a.rel = "noopener"; });
+  $("source").value = current.text;
+  $("docName").textContent = current.name;
+  const words = (current.text.match(/\S+/g) || []).length;
+  $("docMeta").textContent = current.sample ? "Example file" : `${words.toLocaleString()} words · ${Math.max(1, Math.round(words / 220))} min read`;
+  document.documentElement.style.setProperty("--size", size + "px");
+}
+
+function remember() {
+  if (current.sample) return;
+  let list = store.get("pm-recent", []).filter(r => r.name !== current.name);
+  list.unshift({ name: current.name, text: current.text.slice(0, 400000), at: Date.now() });
+  store.set("pm-recent", list.slice(0, 12));
+  store.set("pm-last", current.name);
+}
+
+function openText(name, text) {
+  current = { name, text, sample: false };
+  render(); remember(); window.scrollTo(0, 0);
+}
+
+async function openFiles(files) {
+  const list = [...files];
+  if (!list.length) return;
+  for (const f of list) {
+    try { const t = await f.text(); openText(f.name, t); }
+    catch { toast(`Couldn't read ${f.name}. Try opening it again.`); }
+  }
+  if (list.length > 1) toast(`Opened ${list.length} files. Earlier ones are in Recent.`);
+}
+
+$("openBtn").onclick = () => { if (window.Android && Android.pick) Android.pick(); else $("fileInput").click(); };
+$("fileInput").addEventListener("change", e => { openFiles(e.target.files); e.target.value = ""; });
+
+$("smaller").onclick = () => { size = Math.max(13, size - 1); store.set("pm-size", size); render(); };
+$("bigger").onclick = () => { size = Math.min(28, size + 1); store.set("pm-size", size); render(); };
+
+$("sourceBtn").onclick = () => {
+  const on = $("sourceBtn").getAttribute("aria-pressed") !== "true";
+  $("sourceBtn").setAttribute("aria-pressed", on);
+  $("source").hidden = !on; $("doc").hidden = on;
+  if (!on) { current.text = $("source").value; render(); remember(); }
+};
+$("source").addEventListener("input", () => { current.text = $("source").value; if (current.sample) { current.sample = false; current.name = "Untitled.md"; } });
+
+$("pasteBtn").onclick = () => {
+  current = { name: "Pasted.md", text: "", sample: false };
+  render();
+  $("sourceBtn").setAttribute("aria-pressed", "true");
+  $("source").hidden = false; $("doc").hidden = true;
+  $("source").focus();
+  toast("Paste your Markdown, then tap Source to preview.");
+};
+
+$("copyBtn").onclick = async () => {
+  try { if (window.Android && Android.copy) { Android.copy(current.text); } else { await navigator.clipboard.writeText(current.text); } toast("Copied"); }
+  catch { $("sourceBtn").click(); $("source").select(); toast("Text selected. Use Copy from the menu."); }
+};
+
+function openSheet() {
+  const list = store.get("pm-recent", []);
+  const ul = $("recentList"); ul.innerHTML = "";
+  if (!list.length) ul.innerHTML = '<li><p class="empty">Files you open will show up here.</p></li>';
+  list.forEach((r, i) => {
+    const li = document.createElement("li");
+    const b = document.createElement("button"); b.className = "btn open"; b.id = "recent-" + i;
+    b.innerHTML = `<span></span><small>${new Date(r.at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</small>`;
+    b.querySelector("span").textContent = r.name;
+    b.onclick = () => { closeSheet(); openText(r.name, r.text); };
+    const x = document.createElement("button"); x.className = "btn"; x.setAttribute("aria-label", "Remove " + r.name); x.textContent = "✕";
+    x.onclick = () => { store.set("pm-recent", store.get("pm-recent", []).filter(z => z.name !== r.name)); openSheet(); };
+    li.append(b, x); ul.appendChild(li);
+  });
+  $("sheet").hidden = false; $("backdrop").hidden = false;
+}
+function closeSheet() { $("sheet").hidden = true; $("backdrop").hidden = true; }
+$("recentBtn").onclick = openSheet;
+$("backdrop").onclick = closeSheet;
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+
+let dragDepth = 0;
+addEventListener("dragenter", e => { e.preventDefault(); dragDepth++; $("drop").hidden = false; });
+addEventListener("dragleave", () => { if (--dragDepth <= 0) { dragDepth = 0; $("drop").hidden = true; } });
+addEventListener("dragover", e => e.preventDefault());
+addEventListener("drop", e => { e.preventDefault(); dragDepth = 0; $("drop").hidden = true; openFiles(e.dataTransfer.files); });
+
+let toastTimer;
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 2600); }
+
+window.openFromApp = (name, text) => { closeSheet(); if ($("sourceBtn").getAttribute("aria-pressed") === "true") $("sourceBtn").click(); openText(name, text); };
+
+// Reopen the last file on launch
+const last = store.get("pm-last", null);
+const hit = last && store.get("pm-recent", []).find(r => r.name === last);
+if (hit) current = { name: hit.name, text: hit.text, sample: false };
+render();
+</script>
+</body>
+</html>
